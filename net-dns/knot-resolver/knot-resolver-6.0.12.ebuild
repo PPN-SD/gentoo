@@ -23,7 +23,7 @@ LICENSE="Apache-2.0 BSD CC0-1.0 GPL-3+ LGPL-2.1+ MIT"
 SLOT="0"
 KEYWORDS="~amd64"
 
-IUSE="caps dnstap jemalloc +manager nghttp2 systemd test xdp"
+IUSE="caps dnstap doc jemalloc +manager nghttp2 systemd test xdp"
 RESTRICT="!test? ( test )"
 REQUIRED_USE="
 	${LUA_REQUIRED_USE}
@@ -71,6 +71,13 @@ DEPEND="
 "
 BDEPEND="
 	virtual/pkgconfig
+	doc? (
+		dev-python/breathe
+		dev-python/json-schema-for-humans
+		dev-python/sphinxcontrib-jquery
+		dev-python/sphinx-rtd-theme
+		dev-python/sphinx-tabs
+	)
 	manager? (
 		${DISTUTILS_DEPS}
 		${PYTHON_DEPS}
@@ -105,7 +112,6 @@ src_configure() {
 		-Dauto_features=disabled
 		# post-install tests
 		-Dconfig_tests=disabled
-		-Ddoc=disabled
 		-Ddocdir="${EPREFIX}"/usr/share/doc/${PF}
 		-Dinstall_kresd_conf=enabled
 		-Dopenssl=disabled
@@ -113,6 +119,7 @@ src_configure() {
 		-Dsystemd_files=enabled
 		$(meson_feature caps capng)
 		$(meson_feature dnstap)
+		$(meson_feature doc)
 		$(meson_feature nghttp2)
 		$(meson_feature systemd)
 		$(meson_feature systemd systemd_legacy_units)
@@ -123,6 +130,7 @@ src_configure() {
 
 src_compile() {
 	meson_src_compile
+	use doc && meson_src_compile doc
 	use manager && distutils-r1_src_compile
 }
 
