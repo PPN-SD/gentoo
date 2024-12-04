@@ -1,4 +1,4 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -41,6 +41,7 @@ src_prepare() {
 		-e '/HAVE_API_FN =/d' \
 		-e '/WITH_API_FN/d' \
 		-e 's/-O2//g' \
+		-e 's:$(shell env CC="$(CC)" $(d)/mk/vendor.cc):'$(tc-get-compiler-type)':' \
 		-i GNUmakefile || die
 
 	lua_copy_sources
