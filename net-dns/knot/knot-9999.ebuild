@@ -3,13 +3,21 @@
 
 EAPI=8
 
-inherit flag-o-matic systemd tmpfiles
+PYTHON_COMPAT=( python3_{10..13} )
+
+inherit python-single-r1 flag-o-matic systemd tmpfiles
 
 # subslot: libknot major.libdnssec major.libzscanner major
 KNOT_SUBSLOT="15.9.4"
 
 DESCRIPTION="High-performance authoritative-only DNS server"
 HOMEPAGE="https://www.knot-dns.cz/ https://gitlab.nic.cz/knot/knot-dns"
+if [[ ${PV} == 9999 ]]; then
+	inherit git-r3
+	EGIT_REPO_URI="https://gitlab.nic.cz/knot/knot-dns.git"
+	LICENSE="Apache-2.0 BSD CC0-1.0 GPL-3+ LGPL-2.1+ MIT"
+	SLOT="0"
+else
 SRC_URI="https://secure.nic.cz/files/knot-dns/${P/_/-}.tar.xz"
 
 S="${WORKDIR}/${P/_/-}"
@@ -17,6 +25,7 @@ S="${WORKDIR}/${P/_/-}"
 LICENSE="GPL-3+"
 SLOT="0/${KNOT_SUBSLOT}"
 KEYWORDS="~amd64 ~riscv ~x86"
+fi
 
 KNOT_MODULES=(
 	"+authsignal"
@@ -33,8 +42,12 @@ KNOT_MODULES=(
 	"+whoami"
 )
 
-IUSE="caps +daemon dbus +doc doh +fastparser +idn pkcs11 quic systemd test +utils xdp ${KNOT_MODULES[@]}"
+IUSE="caps +daemon dbus +doc doh +fastparser +idn pkcs11 prometheus python quic systemd test +utils xdp ${KNOT_MODULES[@]}"
 RESTRICT="!test? ( test )"
+REQUIRED_USE="
+	prometheus? ( python )
+	python? ( ${PYTHON_REQUIRED_USE} )
+"
 
 COMMON_DEPEND="
 	dev-libs/libedit
@@ -62,6 +75,13 @@ RDEPEND="
 		doh? ( net-libs/nghttp2:= )
 		idn? ( net-dns/libidn2:= )
 	)
+	python? ( ${PYTHON_DEPS} )
+	prometheus? (
+		$(python_gen_cond_dep '
+			dev-python/prometheus-client[${PYTHON_USEDEP}]
+			dev-python/psutil[${PYTHON_USEDEP}]
+		')
+	)
 	xdp? (
 		>=dev-libs/libbpf-1.0:=
 		net-libs/xdp-tools
@@ -72,6 +92,9 @@ DEPEND="${RDEPEND}"
 BDEPEND="
 	virtual/pkgconfig
 	doc? ( dev-python/sphinx )
+	python? (
+		${PYTHON_DEPS}
+	)
 	test? (
 		pkcs11? ( dev-libs/softhsm )
 	)
@@ -80,6 +103,10 @@ BDEPEND="
 # Used to check cpuset_t in sched.h with NetBSD.
 # False positive because linux have sched.h too but with cpu_set_t
 QA_CONFIG_IMPL_DECL_SKIP=( cpuset_create cpuset_destroy )
+
+pkg_setup() {
+	use python && python-single-r1_pkg_setup
+}
 
 src_prepare() {
 	# https://gitlab.nic.cz/knot/knot-dns/-/issues/946
@@ -163,6 +190,14 @@ src_install() {
 	fi
 
 	find "${D}" -name '*.la' -delete || die
+
+	use python && python_domodule python/libknot/libknot
+
+	if use prometheus; then
+		python_domodule python/knot_exporter/knot_exporter
+		python_scriptinto /usr/sbin
+		python_newscript python/knot_exporter/knot_exporter/knot_exporter.py knot-exporter
+	fi
 
 	keepdir /var/lib/knot
 }

@@ -36,10 +36,6 @@
 		<flag name="geoip">
 			Enable the Geography-based responses module
 		</flag>
-		<flag name="libidn2">
-			If IDN support is enabled, use <pkg>net-dns/libidn2</pkg> instead
-			of <pkg>net-dns/libidn</pkg>
-		</flag>
 		<flag name="noudp">
 			Enable the module which can send empty truncated
 			responses to UDP queries
