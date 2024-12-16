@@ -7,12 +7,12 @@ PLOCALES="cs da de en_GB es fi fr hu it ja ko nl pl pt_BR ru zh_CN"
 inherit cmake plocale xdg
 
 DESCRIPTION="Featureful and configurable Qt client for the music player daemon (MPD)"
-HOMEPAGE="https://github.com/CDrummond/cantata"
-SRC_URI="https://github.com/CDrummond/${PN}/releases/download/v${PV}/${P}.tar.bz2"
+HOMEPAGE="https://github.com/nullobsi/cantata"
+SRC_URI="https://codeload.github.com/nullobsi/${PN}/tar.gz/refs/tags/v${PV} -> ${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="amd64 ~ppc ~ppc64 x86"
+KEYWORDS="~amd64 ~ppc64 ~x86"
 IUSE="cdda cddb cdio http-server mtp musicbrainz replaygain streaming taglib udisks zeroconf"
 REQUIRED_USE="
 	?? ( cdda cdio )
@@ -27,14 +27,8 @@ REQUIRED_USE="
 RESTRICT="test"
 
 COMMON_DEPEND="
-	dev-qt/qtcore:5
-	dev-qt/qtdbus:5
-	dev-qt/qtgui:5
-	dev-qt/qtnetwork:5
-	dev-qt/qtsql:5[sqlite]
-	dev-qt/qtsvg:5
-	dev-qt/qtwidgets:5
-	dev-qt/qtxml:5
+	dev-qt/qtbase:6[dbus,gui,network,sqlite,widgets,xml]
+	dev-qt/qtsvg:6
 	sys-libs/zlib
 	virtual/libudev:=
 	cdda? ( media-sound/cdparanoia )
@@ -47,23 +41,20 @@ COMMON_DEPEND="
 		media-sound/mpg123
 		media-video/ffmpeg:0=
 	)
-	streaming? ( dev-qt/qtmultimedia:5 )
-	taglib? (
-		media-libs/taglib[asf(+),mp4(+)]
-		udisks? ( sys-fs/udisks:2 )
-	)
+	streaming? ( dev-qt/qtmultimedia:6 )
+	taglib? ( media-libs/taglib[asf(+),mp4(+)] )
+	udisks? ( kde-frameworks/solid:6 )
 	zeroconf? ( net-dns/avahi )
 "
 RDEPEND="${COMMON_DEPEND}
-	|| ( >=dev-lang/perl-5.38.2-r3[perl_features_ithreads] <dev-lang/perl-5.38.2-r3[ithreads] )
-	|| ( kde-frameworks/breeze-icons:* kde-frameworks/oxygen-icons:* )
+	dev-lang/perl[perl_features_ithreads]
 "
 DEPEND="${COMMON_DEPEND}
-	dev-qt/qtconcurrent:5
+	dev-qt/qtbase:6[concurrent]
 "
-BDEPEND="dev-qt/linguist-tools:5"
+BDEPEND="dev-qt/qttools:6[linguist]"
 
-PATCHES=( "${FILESDIR}/${PN}-2.2.0-headers.patch" )
+PATCHES=( "${FILESDIR}"/${PN}-3.3.0-rm_vendor.patch )
 
 src_prepare() {
 	remove_locale() {
@@ -73,7 +64,8 @@ src_prepare() {
 	cmake_src_prepare
 
 	# Unbundle 3rd party libs
-	rm -r 3rdparty/{ebur128,qtsingleapplication} || die
+	# keep knotifications : https://github.com/nullobsi/cantata/commit/719adb5
+	rm -r 3rdparty/{ebur128,kcategorizedview,qtsingleapplication,qxt,solid-lite} || die
 
 	plocale_find_changes "translations" "${PN}_" ".ts"
 	plocale_for_each_disabled_locale remove_locale
@@ -81,7 +73,7 @@ src_prepare() {
 
 src_configure() {
 	local mycmakeargs=(
-		-DCANTATA_HELPERS_LIB_DIR="$(get_libdir)"
+		-DENABLE_CATEGORIZED_VIEW=OFF
 		-DENABLE_CDPARANOIA=$(usex cdda)
 		-DENABLE_CDDB=$(usex cddb)
 		-DENABLE_CDIOPARANOIA=$(usex cdio)

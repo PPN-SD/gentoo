@@ -12,6 +12,6 @@
 		<flag name="streaming">Enable playback of MPD HTTP streams using LibVLC (<pkg>media-video/vlc</pkg>)</flag>
 	</use>
 	<upstream>
-		<remote-id type="github">cdrummond/cantata</remote-id>
+		<remote-id type="github">nullobsi/cantata</remote-id>
 	</upstream>
 </pkgmetadata>
