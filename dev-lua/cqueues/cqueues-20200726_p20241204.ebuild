@@ -1,4 +1,4 @@
-# Copyright 2024 Gentoo Authors
+# Copyright 2024-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -9,7 +9,7 @@ inherit lua toolchain-funcs
 
 DESCRIPTION="Stackable Continuation Queues"
 HOMEPAGE="https://github.com/wahern/cqueues"
-HOMEPAGE+=" http://25thandclement.com/~william/projects/cqueues.html"
+HOMEPAGE+=" https://25thandclement.com/~william/projects/cqueues.html"
 EGIT_COMMIT="8c0142577d3cb1f24917879997678bef0d084815"
 SRC_URI="https://github.com/wahern/${PN}/archive/${EGIT_COMMIT}.tar.gz -> ${P}.tar.gz"
 
@@ -93,8 +93,8 @@ lua_src_compile() {
 		LUA_VERSION="5.1"
 	fi
 
-	emake CC=$(tc-getCC) \
-		all${LUA_VERSION}
+	tc-export AR CC RANLIB
+	emake all${LUA_VERSION}
 
 	popd || die
 }
@@ -106,7 +106,7 @@ src_compile() {
 lua_src_test() {
 	pushd "${BUILD_DIR}" || die
 
-	emake CC=$(tc-getCC) check
+	emake check
 
 	popd || die
 }
@@ -124,7 +124,7 @@ lua_src_install() {
 		LUA_VERSION="5.1"
 	fi
 
-	emake CC=$(tc-getCC) \
+	emake \
 		"DESTDIR=${D}" \
 		"lua${LUA_VERSION/./}cpath=$(lua_get_cmod_dir)" \
 		"lua${LUA_VERSION/./}path=$(lua_get_lmod_dir)" \
