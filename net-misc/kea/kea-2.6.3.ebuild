@@ -211,8 +211,14 @@ src_install() {
 	sed -e 's/"output": "stdout"/"output": "syslog"/' \
 		-i "${ED}"/etc/kea/*.conf.sample || die
 
-	newconfd "${FILESDIR}"/${PN}-confd-r2 ${PN}
-	newinitd "${FILESDIR}"/${PN}-initd-r2 ${PN}
+	newinitd "${FILESDIR}"/${PN}-initd-r3 ${PN}
+	local svc
+	for svc in dhcp4 dhcp6 dhcp-ddns ctrl-agent; do
+		newconfd "${FILESDIR}"/${PN}-confd-r3 kea-${svc}
+		sed -e "s:@KEA_SVC@:${svc}:g" \
+			-i ${ED}/etc/conf.d/kea-${svc} || die
+		dosym kea ${EPREFIX}/etc/init.d/kea-${svc}
+	done
 
 	systemd_dounit "${FILESDIR}"/${PN}-ctrl-agent.service-r2
 	systemd_dounit "${FILESDIR}"/${PN}-dhcp-ddns.service-r2
