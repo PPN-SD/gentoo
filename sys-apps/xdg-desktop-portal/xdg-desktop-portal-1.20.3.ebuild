@@ -36,12 +36,12 @@ RDEPEND="
 	sys-apps/dbus
 "
 BDEPEND="
+	${PYTHON_DEPS}
 	>=dev-util/gdbus-codegen-2.80.5-r1
 	dev-python/docutils
 	sys-devel/gettext
 	virtual/pkgconfig
 	test? (
-		${PYTHON_DEPS}
 		dev-util/umockdev
 		media-libs/gstreamer
 		media-libs/gst-plugins-good
@@ -59,10 +59,6 @@ PATCHES=(
 	# These tests require connections to pipewire, internet, /dev/fuse
 	"${FILESDIR}/${PN}-1.20.0-sandbox-disable-failing-tests.patch"
 )
-
-pkg_setup() {
-	use test && python-any-r1_pkg_setup
-}
 
 python_check_deps() {
 	python_has_version ">=dev-python/pytest-3[${PYTHON_USEDEP}]" &&
