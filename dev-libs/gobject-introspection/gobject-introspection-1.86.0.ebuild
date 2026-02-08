@@ -1,11 +1,11 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
-inherit gnome.org meson python-single-r1 xdg
+inherit gnome.org meson python-single-r1 toolchain-funcs xdg
 
 DESCRIPTION="Introspection system for GObject-based libraries"
 HOMEPAGE="https://gi.readthedocs.io/"
@@ -61,6 +61,9 @@ pkg_setup() {
 }
 
 src_configure() {
+	# used by giscanner
+	tc-export PKG_CONFIG
+
 	local emesonargs=(
 		$(meson_feature test cairo)
 		# Enable building the tests (and installing them) unconditionally
